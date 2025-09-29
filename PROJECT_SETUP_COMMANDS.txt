@@ -1,0 +1,526 @@
+# Restaurant Management System with Docker and Authentication
+# Complete Setup Commands and Configuration
+
+## Project Overview
+This is a full-stack Restaurant Management System with:
+- React frontend (Vite + Tailwind CSS + DaisyUI)
+- Node.js/Express backend with JWT authentication
+- PostgreSQL database
+- Docker containerization
+- Role-based authorization (User, Moderator, Admin)
+- CRUD operations for restaurants
+
+===============================================================================
+## STEP 1: CREATE PROJECT STRUCTURE
+===============================================================================
+
+mkdir Restaurants_Docker_Auth
+cd Restaurants_Docker_Auth
+mkdir client server
+
+===============================================================================
+## STEP 2: INITIALIZE CLIENT (React + Vite)
+===============================================================================
+
+cd client
+npm create vite@latest . -- --template react
+
+# Install dependencies
+npm install axios sweetalert2 react-router-dom tailwindcss daisyui json-server @tailwindcss/vite @tailwindcss/cli
+
+# Install dev dependencies
+npm install -D @types/react @types/react-dom @vitejs/plugin-react @eslint/js eslint globals eslint-plugin-react-hooks eslint-plugin-react-refresh
+
+===============================================================================
+## STEP 3: INITIALIZE SERVER (Node.js + Express)
+===============================================================================
+
+cd ..\server
+npm init -y
+
+# Install dependencies
+npm install express cors sequelize pg pg-hstore bcryptjs jsonwebtoken dotenv nodemon
+
+===============================================================================
+## STEP 4: CREATE DOCKER FILES
+===============================================================================
+
+# Create server\Dockerfile.server
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 5555
+CMD ["nodemon", "--legacy-watch", "index.js"]
+
+# Create client\Dockerfile.client
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
+
+===============================================================================
+## STEP 5: CREATE DOCKER COMPOSE FILE
+===============================================================================
+
+# Create docker-compose.yml in root directory
+services:
+  server:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile.server
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: nodemon --legacy-watch index.js
+    restart: always
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/app_db
+      - HOST=db
+      - USER=postgres
+      - PASSWORD=postgres
+      - DB_NAME=app_db
+      - DB_PORT=5432
+      - SERVER_PORT=5555
+    depends_on:
+      - db
+
+  client:
+    build: 
+      context: ./client
+      dockerfile: Dockerfile.client
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - server
+
+  db:
+    image: postgres:16
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
+===============================================================================
+## STEP 6: UPDATE PACKAGE.JSON FILES
+===============================================================================
+
+# server\package.json
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Restaurant Restful API",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.10",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.3"
+  }
+}
+
+# client\package.json (update dependencies section)
+{
+  "name": "grab_restaurant",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "json-server": "json-server --watch db.json --port 3001"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.10",
+    "@tailwindcss/vite": "^4.1.10",
+    "json-server": "^1.0.0-beta.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.6.2",
+    "react-router-dom": "^7.7.0",
+    "tailwindcss": "^4.1.10",
+    "axios": "^1.11.0",
+    "sweetalert2": "^11.22.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "daisyui": "^5.0.43",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react": "^7.40.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.13.0",
+    "vite": "^6.0.5"
+  }
+}
+
+===============================================================================
+## STEP 7: CREATE BASIC SERVER STRUCTURE
+===============================================================================
+
+# Create server\index.js
+import express from "express";
+import cors from "cors";
+import db from "./model/index.js";
+
+const app = express();
+
+// CORS configuration
+const corsOptions = {
+  origin: ["http://localhost:5173", "http://localhost:3000"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database sync
+db.sequelize.sync()
+  .then(() => {
+    console.log("Synced db.");
+  })
+  .catch((err) => {
+    console.log("Failed to sync db: " + err.message);
+  });
+
+// Simple route
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to Restaurant API." });
+});
+
+// Import routes here
+// app.use("/api/auth", authRoutes);
+// app.use("/api/restaurants", restaurantRoutes);
+
+const PORT = process.env.SERVER_PORT || 5555;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}.`);
+});
+
+===============================================================================
+## STEP 8: CREATE SERVER FOLDER STRUCTURE
+===============================================================================
+
+cd server
+mkdir config controllers model Routes middleware
+
+===============================================================================
+## STEP 9: CREATE CLIENT FOLDER STRUCTURE
+===============================================================================
+
+cd ..\client
+mkdir src\Component src\Pages src\Routes src\utils src\assets
+mkdir public
+
+===============================================================================
+## STEP 10: CREATE CONFIGURATION FILES
+===============================================================================
+
+# server\config\db.config.js
+export default {
+  HOST: process.env.HOST || "localhost",
+  USER: process.env.USER || "postgres",
+  PASSWORD: process.env.PASSWORD || "postgres",
+  DB: process.env.DB_NAME || "app_db",
+  dialect: "postgres",
+  port: process.env.DB_PORT || 5432,
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  }
+};
+
+# server\config\auth.config.js
+export default {
+  secret: process.env.JWT_SECRET || "your-secret-key-here"
+};
+
+# client\vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+  },
+})
+
+# client\tailwind.config.js
+import daisyui from 'daisyui'
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [daisyui],
+  daisyui: {
+    themes: ["light", "dark"],
+  },
+}
+
+===============================================================================
+## STEP 11: CREATE DATABASE MODELS
+===============================================================================
+
+# server\model\index.js
+import Sequelize from "sequelize";
+import dbConfig from "../config/db.config.js";
+import User from "./user.model.js";
+import Role from "./role.model.js";
+import Restaurant from "./restaurant.model.js";
+
+const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
+  host: dbConfig.HOST,
+  dialect: dbConfig.dialect,
+  port: dbConfig.port,
+  pool: {
+    max: dbConfig.pool.max,
+    min: dbConfig.pool.min,
+    acquire: dbConfig.pool.acquire,
+    idle: dbConfig.pool.idle,
+  },
+});
+
+const db = {};
+
+db.Sequelize = Sequelize;
+db.sequelize = sequelize;
+
+db.User = User(sequelize, Sequelize);
+db.Role = Role(sequelize, Sequelize);
+db.Restaurant = Restaurant(sequelize, Sequelize);
+
+// Define associations
+db.Role.belongsToMany(db.User, {
+  through: "user_roles",
+  foreignKey: "roleId",
+  otherKey: "userId",
+});
+
+db.User.belongsToMany(db.Role, {
+  through: "user_roles",
+  foreignKey: "userId",
+  otherKey: "roleId",
+});
+
+export default db;
+
+===============================================================================
+## STEP 12: RUN THE PROJECT
+===============================================================================
+
+# Using Docker (Recommended)
+cd Restaurants_Docker_Auth
+docker-compose up --build
+
+# Alternative: Run without Docker
+# Terminal 1 (Database) - Install PostgreSQL locally and create database 'app_db'
+# Terminal 2 (Server)
+cd server
+npm run dev
+
+# Terminal 3 (Client)
+cd client
+npm run dev
+
+===============================================================================
+## STEP 13: ACCESS THE APPLICATION
+===============================================================================
+
+# Client: http://localhost:5173
+# Server API: http://localhost:5555
+# Database: localhost:5432
+
+===============================================================================
+## STEP 14: PRODUCTION DEPLOYMENT SETUP
+===============================================================================
+
+# For Vercel (Client)
+# Create client\vercel.json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+
+# For Render (Server)
+# Create server\render.yaml
+services:
+  - type: web
+    name: restaurant-api
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+# Update CORS for production in server\index.js
+const corsOptions = {
+  origin: [
+    "http://localhost:5173", 
+    "http://localhost:3000",
+    "https://your-vercel-app.vercel.app",
+    "https://your-render-backend.onrender.com"
+  ],
+  credentials: true,
+};
+
+===============================================================================
+## STEP 15: ADDITIONAL FEATURES TO IMPLEMENT
+===============================================================================
+
+1. Authentication System:
+   - User registration/login
+   - JWT token generation
+   - Role-based authorization middleware
+
+2. Restaurant Management:
+   - CRUD operations
+   - Image upload
+   - Search and filtering
+
+3. Frontend Components:
+   - Navigation bar
+   - Protected routes
+   - Form validation
+   - Sweet Alert notifications
+
+4. Database Operations:
+   - User roles (User, Moderator, Admin)
+   - Restaurant model
+   - Associations and relationships
+
+===============================================================================
+## TROUBLESHOOTING COMMON ISSUES
+===============================================================================
+
+1. Port conflicts:
+   - Change ports in docker-compose.yml if needed
+   - Check if PostgreSQL is running locally
+
+2. Database connection:
+   - Ensure PostgreSQL container is running
+   - Check environment variables
+
+3. CORS errors:
+   - Update CORS origins in server\index.js
+   - Check frontend API base URL
+
+4. Module import errors:
+   - Ensure "type": "module" is in package.json
+   - Use .js extensions in imports
+
+5. Docker build issues:
+   - Run docker-compose down --volumes
+   - Run docker-compose up --build --force-recreate
+
+===============================================================================
+## USEFUL COMMANDS
+===============================================================================
+
+# Docker commands
+docker-compose up --build          # Build and start all services
+docker-compose down               # Stop all services
+docker-compose down --volumes     # Stop and remove volumes
+docker-compose logs server        # View server logs
+docker-compose logs client        # View client logs
+
+# Database commands
+docker exec -it [container_name] psql -U postgres -d app_db
+
+# Git commands (if using version control)
+git init
+git add .
+git commit -m "Initial project setup"
+git remote add origin [your-repo-url]
+git push -u origin main
+
+===============================================================================
+## PROJECT STRUCTURE REFERENCE
+===============================================================================
+
+Restaurants_Docker_Auth/
+├── client/
+│   ├── public/
+│   ├── src/
+│   │   ├── Component/
+│   │   ├── Pages/
+│   │   ├── Routes/
+│   │   ├── utils/
+│   │   └── assets/
+│   ├── Dockerfile.client
+│   ├── package.json
+│   ├── vite.config.js
+│   └── tailwind.config.js
+├── server/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── model/
+│   ├── Routes/
+│   ├── Dockerfile.server
+│   ├── package.json
+│   └── index.js
+├── docker-compose.yml
+└── PROJECT_SETUP_COMMANDS.txt
+
+===============================================================================
+
+This file contains all the necessary commands and configurations to set up 
+the Restaurant Management System from scratch. Follow the steps in order 
+for a complete setup.
+
+Created: September 4, 2025
