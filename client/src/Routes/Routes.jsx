@@ -17,5 +17,9 @@ const router = createBrowserRouter([
         path: "/add-comics",
         element: <AddComics />,
     },
+    {
+        path: "/add-journals",
+        element: <AddJournals />,
+    },
 ]);
 export default router;

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../Component/Navbar';
-import Restaurant from '../Component/Restaurant';
+import Items from '../Component/Item';
 import dotenv from 'dotenv';
 
 const Home = () => {
-  const [restaurants, setRestaurants] = useState([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRestaurants = async () => {
+  const fetchItems = async () => {
     try {
-      const response = await fetch('https://bookshop-api-er7t.onrender.com/api/items');
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_ITEMS_API}`);
       const data = await response.json();
-      setRestaurants(data);
-      setFilteredRestaurants(data);
+      setItems(data);
+      setFilteredItems(data);
       setLoading(false);
     } catch (error) {
       console.error('Error ไม่สามารถดู item ได้:', error);
@@ -22,25 +22,28 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchRestaurants();
+    fetchItems();
   }, []);
 
   const handleSearch = (e) => {
     const searchTerm = e.target.value.toLowerCase();
     if (searchTerm === '') {
-      setFilteredRestaurants(restaurants);
+      setFilteredItems(items);
     } else {
-      const filtered = restaurants.filter(restaurant =>
-        restaurant.name.toLowerCase().includes(searchTerm) ||
-        restaurant.type.toLowerCase().includes(searchTerm)
+      const filtered = items.filter(item =>
+        item.title.toLowerCase().includes(searchTerm) ||
+        item.author.toLowerCase().includes(searchTerm) ||
+        item.category.toLowerCase().includes(searchTerm) ||
+        (item.genre && item.genre.toLowerCase().includes(searchTerm)) ||
+        (item.publisher && item.publisher.toLowerCase().includes(searchTerm))
       );
-      setFilteredRestaurants(filtered);
+      setFilteredItems(filtered);
     }
   };
 
   const handleRefresh = () => {
     setLoading(true);
-    fetchRestaurants();
+    fetchItems();
   };
 
   if (loading) {
@@ -58,7 +61,7 @@ const Home = () => {
     <div className='container mx-auto'>
       <Navbar />
       <div className='title justify-center items-center flex flex-col mt-10'>
-        <h1 className='text-4xl font-bold mb-4'>Online Libery</h1>
+        <h1 className='text-4xl font-bold mb-4'>Online Library</h1>
       </div>
       <div className='flex justify-center items-center flex-col mt-10 mb-8'>
         <div className="relative w-full max-w-md">
@@ -75,8 +78,8 @@ const Home = () => {
           />
         </div>
       </div>
-      <Restaurant 
-        restaurants={filteredRestaurants} 
+      <Items 
+        items={filteredItems} 
         onRefresh={handleRefresh}
       />
     </div>

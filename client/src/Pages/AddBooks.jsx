@@ -84,19 +84,19 @@ const AddBook = () => {
                     </figure>
                     <div className="card-body items-center text-responsive">
                         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
-                            <input type="text" name="title" placeholder="ชื่อหนังสือ *" className="input input-bordered w-full" onChange={handleChange} value={book.title} required />
-                            <input type="text" name="author" placeholder="ผู้แต่ง *" className="input input-bordered w-full" onChange={handleChange} value={book.author} required />
-                            <input type="text" name="category" placeholder="หมวดหมู่ *" className="input input-bordered w-full" onChange={handleChange} value={book.category} required />
-                            <input type="number" name="publishYear" placeholder="ปีที่ตีพิมพ์ *" className="input input-bordered w-full" onChange={handleChange} value={book.publishYear} required />
-                            <input type="text" name="isbn" placeholder="ISBN *" className="input input-bordered w-full" onChange={handleChange} value={book.isbn} required />
-                            <input type="url" name="coverImage" placeholder="URL รูปปก" className="input input-bordered w-full" onChange={handleChange} value={book.coverImage} />
-                            <textarea name="description" placeholder="คำอธิบาย" className="textarea textarea-bordered w-full" onChange={handleChange} value={book.description} rows="3" />
-                            <input type="text" name="location" placeholder="ตำแหน่งที่เก็บ" className="input input-bordered w-full" onChange={handleChange} value={book.location} />
-                            <input type="text" name="publisher" placeholder="สำนักพิมพ์" className="input input-bordered w-full" onChange={handleChange} value={book.publisher} />
-                            <input type="text" name="edition" placeholder="ครั้งที่พิมพ์ *" className="input input-bordered w-full" onChange={handleChange} value={book.edition} required />
-                            <input type="number" name="pageCount" placeholder="จำนวนหน้า *" className="input input-bordered w-full" onChange={handleChange} value={book.pageCount} required />
-                            <input type="text" name="language" placeholder="ภาษา *" className="input input-bordered w-full" onChange={handleChange} value={book.language} required />
-                            <input type="text" name="genre" placeholder="ประเภทหนังสือ *" className="input input-bordered w-full" onChange={handleChange} value={book.genre} required />
+                                <input type="text" name="title" placeholder="Book Title *" className="input input-bordered w-full" onChange={handleChange} value={book.title} required />
+                                <input type="text" name="author" placeholder="Author *" className="input input-bordered w-full" onChange={handleChange} value={book.author} required />
+                                <input type="text" name="category" placeholder="Category *" className="input input-bordered w-full" onChange={handleChange} value={book.category} required />
+                                <input type="number" name="publishYear" placeholder="Publish Year *" className="input input-bordered w-full" onChange={handleChange} value={book.publishYear} required />
+                                <input type="text" name="isbn" placeholder="ISBN *" className="input input-bordered w-full" onChange={handleChange} value={book.isbn} required />
+                                <input type="url" name="coverImage" placeholder="Cover Image URL" className="input input-bordered w-full" onChange={handleChange} value={book.coverImage} />
+                                <textarea name="description" placeholder="Description" className="textarea textarea-bordered w-full" onChange={handleChange} value={book.description} rows="3" />
+                                <input type="text" name="location" placeholder="Location" className="input input-bordered w-full" onChange={handleChange} value={book.location} />
+                                <input type="text" name="publisher" placeholder="Publisher" className="input input-bordered w-full" onChange={handleChange} value={book.publisher} />
+                                <input type="text" name="edition" placeholder="Edition *" className="input input-bordered w-full" onChange={handleChange} value={book.edition} required />
+                                <input type="number" name="pageCount" placeholder="Page Count *" className="input input-bordered w-full" onChange={handleChange} value={book.pageCount} required />
+                                <input type="text" name="language" placeholder="Language *" className="input input-bordered w-full" onChange={handleChange} value={book.language} required />
+                                <input type="text" name="genre" placeholder="Genre *" className="input input-bordered w-full" onChange={handleChange} value={book.genre} required />
                             <button type="submit" className="btn btn-primary w-full">Add Book</button>
                         </form>
                     </div>

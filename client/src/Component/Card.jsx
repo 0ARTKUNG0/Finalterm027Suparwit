@@ -2,41 +2,64 @@ import React from 'react'
 
 const Card = (props) => {
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this restaurant?')) {
+    const itemType = props.itemType || 'item';
+    if (window.confirm(`Are you sure you want to delete this ${itemType}?`)) {
       try {
-        const response = await fetch(`http://localhost:5000/api/v1/restaurants/${props.id}`, {
+        const apiEndpoint = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_ITEMS_API}/${props.id}`;
+          
+        const response = await fetch(apiEndpoint, {
           method: 'DELETE',
         });
 
         if (response.ok) {
-          alert('Restaurant deleted successfully');
+          alert(`${itemType} deleted successfully`);
           if (props.onDelete) {
             props.onDelete(props.id);
           }
         } else {
-          alert('Failed to delete restaurant');
+          alert(`Failed to delete ${itemType.toLowerCase()}`);
         }
       } catch (error) {
-        console.error('Error deleting restaurant:', error);
-        alert('Error deleting restaurant');
+        console.error(`Error deleting ${itemType.toLowerCase()}:`, error);
+        alert(`Error deleting ${itemType.toLowerCase()}`);
       }
     }
   };
   const handleEdit = () => {
-    window.location.href = `/update-restaurant/${props.id}`;
+    let editPath;
+    switch(props.itemType) {
+      case 'Journal':
+        editPath = `/update-journal/${props.id}`;
+        break;
+      case 'Comic':
+        editPath = `/update-comic/${props.id}`;
+        break;
+      case 'Book':
+      default:
+        editPath = `/update-book/${props.id}`;
+        break;
+    }
+    window.location.href = editPath;
   };
   return (
     <div className="card bg-gray-800 w-96 shadow-lg rounded-lg overflow-hidden">
       <figure className="h-48 max-h-48 overflow-hidden">
         <img
-          src={props.imageURL || "https://media.istockphoto.com/id/2171382633/vector/user-profile-icon-anonymous-person-symbol-blank-avatar-graphic-vector-illustration.jpg?s=612x612&w=0&k=20&c=ZwOF6NfOR0zhYC44xOX06ryIPAUhDvAajrPsaZ6v1-w="}
-          alt={props.name}
+          src={props.coverImage || "https://via.placeholder.com/300x400?text=No+Cover"}
+          alt={props.title}
           className="w-full h-full max-h-48 object-cover"
         />
       </figure>
       <div className="card-body p-4 text-white">
-        <h2 className="card-title text-white text-lg font-semibold mb-2">{props.name}</h2>
-        <p className="text-gray-300 text-sm mb-4">{props.type}</p>
+        <h2 className="card-title text-white text-lg font-semibold mb-2">{props.title}</h2>
+        <p className="text-gray-300 text-sm mb-1">By: {props.author}</p>
+        <p className="text-gray-300 text-sm mb-4">Category: {props.category}</p>
+        <div className="flex items-center mb-4">
+          <span className={`badge ${props.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'} badge-sm`}>
+            {props.status}
+          </span>
+          <span className="badge badge-info badge-sm ml-2">{props.itemType}</span>
+        </div>
         <div className="card-actions justify-end gap-2">
           <button 
             onClick={handleDelete}
