@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../Component/Navbar';
 import Items from '../Component/Item';
-import dotenv from 'dotenv';
 
 const Home = () => {
   const [items, setItems] = useState([]);
