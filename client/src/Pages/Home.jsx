@@ -10,9 +10,10 @@ const Home = () => {
   const fetchItems = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_ITEMS_API}`);
-      const data = await response.json();
-      setItems(data);
-      setFilteredItems(data);
+      const result = await response.json();
+      const itemsData = result.data || [];
+      setItems(itemsData);
+      setFilteredItems(itemsData);
       setLoading(false);
     } catch (error) {
       console.error('Error ไม่สามารถดู item ได้:', error);

@@ -1,9 +1,10 @@
-import React from 'react'
-import { useNavigate } from 'react-router'
+import React, { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router'
 import Navbar from '../Component/Navbar'
 
-const AddJournal = () => {
+const UpdateJournal = () => {
     const navigate = useNavigate()
+    const { id } = useParams()
     const [journal, setJournal] = React.useState({
         title: '',
         author: '',
@@ -17,67 +18,93 @@ const AddJournal = () => {
         coverImage: '',
         description: '',
         location: '',
-    });
+    })
+
+    useEffect(() => {
+        const fetchJournal = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_JOURNALS_API}/${id}`)
+                const data = await response.json()
+                if (data.success) {
+                    const journalData = data.data
+                    setJournal({
+                        title: journalData.title,
+                        author: journalData.author,
+                        category: journalData.category,
+                        publishYear: journalData.publishYear,
+                        issn: journalData.issn,
+                        volume: journalData.volume,
+                        issue: journalData.issue,
+                        publicationFrequency: journalData.publicationFrequency,
+                        publisher: journalData.publisher || '',
+                        coverImage: journalData.coverImage || '',
+                        description: journalData.description || '',
+                        location: journalData.location || '',
+                    })
+                }
+            } catch (error) {
+                console.error('Error fetching journal:', error)
+                alert('Error loading journal data')
+            }
+        }
+        fetchJournal()
+    }, [id])
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setJournal(prev => ({ ...prev, [name]: value }));
-    };
+        const { name, value } = e.target
+        setJournal(prev => ({ ...prev, [name]: value }))
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
         if (!journal.title || !journal.author || !journal.category || !journal.publishYear || !journal.volume || !journal.issue || !journal.publicationFrequency) {
-            alert('Please fill in all required fields.');
-            return;
+            alert('Please fill in all required fields.')
+            return
         }
 
-        const newJournal = {
+        const updatedJournal = {
             title: journal.title,
             author: journal.author,
             category: journal.category,
             publishYear: parseInt(journal.publishYear),
-            status: "AVAILABLE",
             coverImage: journal.coverImage || null,
             description: journal.description,
             location: journal.location || null,
-            itemType: "Journal",
             issn: journal.issn || null,
             volume: journal.volume || null,
             issue: journal.issue || null,
             publicationFrequency: journal.publicationFrequency || null,
             publisher: journal.publisher || null,
-        };
-
-        console.log('Submitting payload:', newJournal);
+        }
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_JOURNALS_API}`, {
-                method: 'POST',
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_JOURNALS_API}/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newJournal),
-            });
+                body: JSON.stringify(updatedJournal),
+            })
 
             if (response.ok) {
-                alert('Journal added successfully');
-                navigate('/');
+                alert('Journal updated successfully')
+                navigate('/')
             } else {
-                const errorData = await response.json().catch(() => ({}));
-                alert('Failed to add journal: ' + (errorData.message || response.statusText));
+                const errorData = await response.json().catch(() => ({}))
+                alert('Failed to update journal: ' + (errorData.message || response.statusText))
             }
         } catch (error) {
-            console.log('Error adding journal:', error);
-            alert('Error adding journal');
+            console.log('Error updating journal:', error)
+            alert('Error updating journal')
         }
-    };
+    }
 
     return (
         <div className="min-h-screen bg-base-200">
             <Navbar />
             <div className="flex flex-col items-center justify-center mt-10">
-                <h1 className="text-4xl font-bold mb-6">Add Journal</h1>
+                <h1 className="text-4xl font-bold mb-6">Update Journal</h1>
                 <div className="card w-full max-w-md bg-base-100 shadow-xl">
                     <figure className="px-10 pt-10">
                         <img
@@ -107,7 +134,7 @@ const AddJournal = () => {
                             <input type="url" name="coverImage" placeholder="Cover Image URL" className="input input-bordered w-full" onChange={handleChange} value={journal.coverImage} />
                             <textarea name="description" placeholder="Description" className="textarea textarea-bordered w-full" onChange={handleChange} value={journal.description} rows="3" />
                             <input type="text" name="location" placeholder="Location" className="input input-bordered w-full" onChange={handleChange} value={journal.location} />
-                            <button type="submit" className="btn btn-primary w-full">Add Journal</button>
+                            <button type="submit" className="btn btn-primary w-full">Update Journal</button>
                         </form>
                     </div>
                 </div>
@@ -116,4 +143,4 @@ const AddJournal = () => {
     )
 }
 
-export default AddJournal
+export default UpdateJournal

@@ -1,9 +1,10 @@
-import React from 'react'
-import { useNavigate } from 'react-router'
+import React, { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router'
 import Navbar from '../Component/Navbar'
 
-const AddComic = () => {
+const UpdateComic = () => {
     const navigate = useNavigate()
+    const { id } = useParams()
     const [comic, setComic] = React.useState({
         title: '',
         author: '',
@@ -19,69 +20,97 @@ const AddComic = () => {
         illustrator: '',
         colorType: '',
         targetAge: '',
-    });
+    })
+
+    useEffect(() => {
+        const fetchComic = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_COMICS_API}/${id}`)
+                const data = await response.json()
+                if (data.success) {
+                    const comicData = data.data
+                    setComic({
+                        title: comicData.title,
+                        author: comicData.author,
+                        category: comicData.category,
+                        publishYear: comicData.publishYear,
+                        isbn: comicData.isbn,
+                        coverImage: comicData.coverImage || '',
+                        description: comicData.description || '',
+                        location: comicData.location || '',
+                        publisher: comicData.publisher || '',
+                        series: comicData.series,
+                        volumeNumber: comicData.volumeNumber,
+                        illustrator: comicData.illustrator,
+                        colorType: comicData.colorType,
+                        targetAge: comicData.targetAge,
+                    })
+                }
+            } catch (error) {
+                console.error('Error fetching comic:', error)
+                alert('Error loading comic data')
+            }
+        }
+        fetchComic()
+    }, [id])
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setComic(prev => ({ ...prev, [name]: value }));
-    };
+        const { name, value } = e.target
+        setComic(prev => ({ ...prev, [name]: value }))
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
         if (!comic.title || !comic.author || !comic.category || !comic.publishYear || !comic.isbn || !comic.series || !comic.volumeNumber || !comic.illustrator || !comic.colorType || !comic.targetAge) {
-            alert('Please fill in all required fields.');
-            return;
+            alert('Please fill in all required fields.')
+            return
         }
 
-        const newComic = {
+        const updatedComic = {
             title: comic.title,
             author: comic.author,
             category: comic.category,
             publishYear: parseInt(comic.publishYear),
             isbn: comic.isbn,
-            status: "AVAILABLE",
             coverImage: comic.coverImage || null,
             description: comic.description,
             location: comic.location || null,
-            itemType: "Comic",
             publisher: comic.publisher,
             series: comic.series,
             volumeNumber: parseInt(comic.volumeNumber),
             illustrator: comic.illustrator,
             colorType: comic.colorType,
             targetAge: comic.targetAge
-        };
-
-        console.log('Submitting payload:', newComic);
+        }
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_COMICS_API}`, {
-                method: 'POST',
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_COMICS_API}/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newComic),
-            });
+                body: JSON.stringify(updatedComic),
+            })
 
             if (response.ok) {
-                alert('Comic added successfully');
-                navigate('/');
+                alert('Comic updated successfully')
+                navigate('/')
             } else {
-                const errorData = await response.json().catch(() => ({}));
-                alert('Failed to add comic: ' + (errorData.message || response.statusText));
+                const errorData = await response.json().catch(() => ({}))
+                alert('Failed to update comic: ' + (errorData.message || response.statusText))
             }
         } catch (error) {
-            console.log('Error adding comic:', error);
-            alert('Error adding comic');
+            console.log('Error updating comic:', error)
+            alert('Error updating comic')
         }
-    };
+    }
 
     return (
         <div className="min-h-screen bg-base-200">
             <Navbar />
             <div className="flex flex-col items-center justify-center mt-10">
-                <h1 className="text-4xl font-bold mb-6">Add Comic</h1>
+                <h1 className="text-4xl font-bold mb-6">Update Comic</h1>
                 <div className="card w-full max-w-md bg-base-100 shadow-xl">
                     <figure className="px-10 pt-10">
                         <img
@@ -106,7 +135,7 @@ const AddComic = () => {
                             <input type="url" name="coverImage" placeholder="Cover Image URL" className="input input-bordered w-full" onChange={handleChange} value={comic.coverImage} />
                             <textarea name="description" placeholder="Description" className="textarea textarea-bordered w-full" onChange={handleChange} value={comic.description} rows="3" />
                             <input type="text" name="location" placeholder="Location" className="input input-bordered w-full" onChange={handleChange} value={comic.location} />
-                            <button type="submit" className="btn btn-primary w-full">Add Comic</button>
+                            <button type="submit" className="btn btn-primary w-full">Update Comic</button>
                         </form>
                     </div>
                 </div>
@@ -115,4 +144,4 @@ const AddComic = () => {
     )
 }
 
-export default AddComic
+export default UpdateComic

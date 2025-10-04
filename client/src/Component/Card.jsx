@@ -5,7 +5,16 @@ const Card = (props) => {
     const itemType = props.itemType || 'item';
     if (window.confirm(`Are you sure you want to delete this ${itemType}?`)) {
       try {
-        const apiEndpoint = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_ITEMS_API}/${props.id}`;
+        let apiEndpoint;
+        switch(props.itemType) {
+          case 'Journal':apiEndpoint = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_JOURNALS_API}/${props.id}`;
+            break;
+          case 'Comic':apiEndpoint = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_COMICS_API}/${props.id}`;
+            break;
+          case 'Book':
+          default:apiEndpoint = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_BOOKS_API}/${props.id}`;
+            break;
+        }
           
         const response = await fetch(apiEndpoint, {
           method: 'DELETE',

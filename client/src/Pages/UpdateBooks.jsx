@@ -1,0 +1,136 @@
+import React, { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router'
+import Navbar from '../Component/Navbar'
+
+const UpdateBook = () => {
+    const navigate = useNavigate()
+    const { id } = useParams()
+    const [book, setBook] = React.useState({
+        title: '', 
+        author: '', 
+        category: '', 
+        publishYear: '', 
+        isbn: '',
+        coverImage: '', 
+        description: '', 
+        location: '', 
+        publisher: '',
+        edition: '', 
+        pageCount: '', 
+        language: '', 
+        genre: '',
+    })
+
+    useEffect(() => {
+        const fetchBook = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_BOOKS_API}/${id}`)
+                const data = await response.json()
+                if (data.success) {
+                    const bookData = data.data
+                    setBook({
+                        title: bookData.title,
+                        author: bookData.author,
+                        category: bookData.category,
+                        publishYear: bookData.publishYear,
+                        isbn: bookData.isbn,
+                        coverImage: bookData.coverImage || '',
+                        description: bookData.description || '',
+                        location: bookData.location || '',
+                        publisher: bookData.publisher || '',
+                        edition: bookData.edition,
+                        pageCount: bookData.pageCount,
+                        language: bookData.language,
+                        genre: bookData.genre,
+                    })
+                }
+            } catch (error) {
+                console.error('Error fetching book:', error)
+                alert('Error loading book data')
+            }
+        }
+        fetchBook()
+    }, [id])
+
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setBook(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!book.title || !book.author || !book.category || !book.publishYear || !book.isbn || !book.edition || !book.pageCount || !book.language || !book.genre) {
+            alert('Please fill in all required fields.')
+            return
+        }
+
+        const updatedBook = {
+            title: book.title, 
+            author: book.author, 
+            category: book.category,
+            publishYear: parseInt(book.publishYear), 
+            isbn: book.isbn,
+            coverImage: book.coverImage || 'https://example.com/cover.jpg',
+            description: book.description, 
+            location: book.location, 
+            publisher: book.publisher, 
+            edition: book.edition, 
+            pageCount: parseInt(book.pageCount),
+            language: book.language, 
+            genre: book.genre,
+        }
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_BOOKS_API}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedBook),
+            })
+
+            if (response.ok) {
+                alert('Book updated successfully')
+                navigate('/')
+            } else {
+                const errorData = await response.json().catch(() => ({}))
+                alert('Failed to update book: ' + (errorData.message || response.statusText))
+            }
+        } catch (error) {
+            console.log('Error updating book:', error)
+            alert('Error updating book')
+        }
+    }
+
+    return (
+        <div className="min-h-screen bg-base-200">
+            <Navbar />
+            <div className="flex flex-col items-center justify-center mt-10">
+                <h1 className="text-4xl font-bold mb-6">Update Book</h1>
+                <div className="card w-full max-w-md bg-base-100 shadow-xl">
+                    <figure className="px-10 pt-10">
+                        <img src={book.coverImage || "https://cdn2.domestika.org/assets/projects/project-default-cover-1248c9d991d3ef88af5464656840f5534df2ae815032af0fdf39562fee08f0a6.svg"} alt="Book Cover" className="rounded-xl w-32 h-32 object-cover" />
+                    </figure>
+                    <div className="card-body items-center text-responsive">
+                        <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
+                            <input type="text" name="title" placeholder="Book Title *" className="input input-bordered w-full" onChange={handleChange} value={book.title} required />
+                            <input type="text" name="author" placeholder="Author *" className="input input-bordered w-full" onChange={handleChange} value={book.author} required />
+                            <input type="text" name="category" placeholder="Category *" className="input input-bordered w-full" onChange={handleChange} value={book.category} required />
+                            <input type="number" name="publishYear" placeholder="Publish Year *" className="input input-bordered w-full" onChange={handleChange} value={book.publishYear} required />
+                            <input type="text" name="isbn" placeholder="ISBN *" className="input input-bordered w-full" onChange={handleChange} value={book.isbn} required />
+                            <input type="url" name="coverImage" placeholder="Cover Image URL" className="input input-bordered w-full" onChange={handleChange} value={book.coverImage} />
+                            <textarea name="description" placeholder="Description" className="textarea textarea-bordered w-full" onChange={handleChange} value={book.description} rows="3" />
+                            <input type="text" name="location" placeholder="Location" className="input input-bordered w-full" onChange={handleChange} value={book.location} />
+                            <input type="text" name="publisher" placeholder="Publisher" className="input input-bordered w-full" onChange={handleChange} value={book.publisher} />
+                            <input type="text" name="edition" placeholder="Edition *" className="input input-bordered w-full" onChange={handleChange} value={book.edition} required />
+                            <input type="number" name="pageCount" placeholder="Page Count *" className="input input-bordered w-full" onChange={handleChange} value={book.pageCount} required />
+                            <input type="text" name="language" placeholder="Language *" className="input input-bordered w-full" onChange={handleChange} value={book.language} required />
+                            <input type="text" name="genre" placeholder="Genre *" className="input input-bordered w-full" onChange={handleChange} value={book.genre} required />
+                            <button type="submit" className="btn btn-primary w-full">Update Book</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default UpdateBook

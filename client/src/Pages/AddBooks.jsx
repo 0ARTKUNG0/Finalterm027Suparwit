@@ -1,7 +1,9 @@
 import React from 'react'
+import { useNavigate } from 'react-router'
 import Navbar from '../Component/Navbar'
 
 const AddBook = () => {
+    const navigate = useNavigate()
     const [book, setBook] = React.useState({
         title: '', 
         author: '', 
@@ -37,7 +39,7 @@ const AddBook = () => {
             publishYear: parseInt(book.publishYear), 
             isbn: book.isbn,
             status: 'AVAILABLE', 
-            coverImage: book.coverImage || 'https://via.placeholder.com/300x400?text=No+Cover',
+            coverImage: book.coverImage || 'https://example.com/cover.jpg',
             description: book.description, 
             location: book.location, 
             itemType: 'Book',
@@ -58,11 +60,7 @@ const AddBook = () => {
 
             if (response.ok) {
                 alert('Book added successfully')
-                setBook({
-                    title: '', author: '', category: '', publishYear: '', isbn: '',
-                    coverImage: '', description: '', location: '', publisher: '',
-                    edition: '', pageCount: '', language: '', genre: '',
-                })
+                navigate('/')
             } else {
                 const errorData = await response.json().catch(() => ({}))
                 alert('Failed to add book: ' + (errorData.message || response.statusText))
@@ -80,7 +78,7 @@ const AddBook = () => {
                 <h1 className="text-4xl font-bold mb-6">Add Book</h1>
                 <div className="card w-full max-w-md bg-base-100 shadow-xl">
                     <figure className="px-10 pt-10">
-                        <img src={book.coverImage || 'https://via.placeholder.com/300x400?text=No+Cover'} alt="Book Cover" className="rounded-xl w-32 h-32 object-cover" />
+                        <img src={book.coverImage || "https://cdn2.domestika.org/assets/projects/project-default-cover-1248c9d991d3ef88af5464656840f5534df2ae815032af0fdf39562fee08f0a6.svg"} alt="Book Cover" className="rounded-xl w-32 h-32 object-cover" />
                     </figure>
                     <div className="card-body items-center text-responsive">
                         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
